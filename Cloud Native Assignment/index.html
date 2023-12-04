@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en" ng-app="dashboard">
+    <head>
+        <meta charset="UTF-8">
+
+        <title>F1 Media</title>
+        <link rel="stylesheet" type="text/css" href="CSS/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="CSS/styles.css">
+        <script type="text/javascript" src="JS/bootstrap.js"></script>
+        <script type="text/javascript" src="JS/bootstrap.bundle.min.js"></script>
+        <script type="text/javascript" src="JS/jquery-3.6.0.min.js"></script>
+        <script type="text/javascript" src="JS/app.js"></script>
+    </head>
+    <body onload="getImages(), getAssetList()">
+
+   
+        <nav class="custom-navbar">
+            <div class="nav-container">
+                <a class="navbar-brand" href="index.html">F1 Media</a>
+                <div class="navbar-links">
+                    <a class="nav-link" href="index.html">Home</a>
+                    <button data-toggle="secondModal">Add Driver</button>
+                    <button data-toggle="firstModal">Upload Image</button>
+                    <div class="nav-dropdown">
+                        <button class="nav-link nav-dropdown-toggle">View</button>
+                        <div class="nav-dropdown-content">
+                            <a id="view-drivers" class="nav-link" href="javascript:void(0);">Drivers</a>
+                            <a id="view-images" class="nav-link" href="javascript:void(0);">Images</a>
+                        </div>                        
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        <div id="firstModal" class="modal">
+            <div class="modal-content">
+              <span class="close" data-modal="firstModal">&times;</span>
+                <div class="row align-items-start">
+                    <div class="col-2"  ></div>
+        
+                    <div class="col-8" style="text-align: left;">
+                    <p id="modal-title">Upload Image</p>
+        
+                    <form style="font-size: 10pt;" id="newAssetForm">
+                        <div class="mb-3">
+                        <label for="FileName" class="form-label">File Name</label>
+                        <input type="text" class="form-control" id="FileName">
+                        </div>
+        
+                        <div class="mb-3">
+                        <label for="userID" class="form-label">User Id</label>
+                        <input type="string" class="form-control" id="userID">
+                        </div>
+        
+                        <div class="mb-3">
+                        <label for="userName" class="form-label">User Name</label>
+                        <input type="text" class="form-control" id="userName">
+                        </div>
+        
+                        <div class="mb-3">
+                        <label for="UpFile" class="form-label">File to Upload</label>
+                        <input type="file" class="form-control" id="UpFile">
+                        </div>
+                    
+                        <button type="button" id="subNewMedia" class="btn btn-primary">Submit</button> <br/><br/>
+                    </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="secondModal" class="modal">
+            <div class="modal-content">
+                <span class="close" data-modal="secondModal">&times</span>
+                    <div class="col-2"></div>
+                        <div class="col-8" style="text-align: left;">
+                        <p id="modal-title">Add Driver</p>
+                        <form style="font-size: 10pt;" id="newAssetForm">
+                            <div class="mb-3">
+                              <label for="driverRef" class="form-label">Driver Ref</label>
+                              <input type="text" class="form-control" id="driverRef">
+                            </div>
+            
+                            <div class="mb-3">
+                              <label for="code" class="form-label">Code</label>
+                              <input type="text" class="form-control" id="code">
+                            </div>
+            
+                            <div class="mb-3">
+                              <label for="firstName" class="form-label">First Name</label>
+                              <input type="text" class="form-control" id="firstName">
+                            </div>
+            
+                            <div class="mb-3">
+                              <label for="lastName" class="form-label">Surname</label>
+                              <input type="text" class="form-control" id="lastName">
+                            </div>
+            
+                            <div class="mb-3">
+                              <label for="nationality" class="form-label">Nationality</label>
+                              <input type="text" class="form-control" id="nationality">
+                            </div>
+            
+                            <div class="mb-3">
+                              <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                              <input type="date" class="form-control" id="dateOfBirth">
+                            </div>
+            
+                            <div class="mb-3">
+                              <label for="constructor" class="form-label">Constructor</label>
+                              <input type="text" class="form-control" id="constructor">
+                            </div>
+            
+                            <div class="mb-3">
+                              <label for="number" class="form-label">Number</label>
+                              <input type="number" class="form-control" id="number">
+                            </div>
+                            <div class="mb-3">
+                                <label for="wins" class="form-label">Wins</label>
+                                <input type="number" class="form-control" id="wins">
+                            </div>
+                            <div class="mb-3">
+                                <label for="podiums" class="form-label">Podiums</label>
+                                <input type="number" class="form-control" id="podiums">
+                            </div>
+                            <div class="mb-3">
+                                <label for="polePositions" class="form-label">Pole Positions </label>
+                                <input type="number" class="form-control" id="polePositions">
+                              </div>
+                            <div class="mb-3">
+                                <label for="racesParticipated" class="form-label">Race Participated</label>
+                                <input type="number" class="form-control" id="racesParticipated">
+                            </div>
+                            <div class="mb-3">
+                                <label for="championships" class="form-label">Champions</label>
+                                <input type="number" class="form-control" id="championships">
+                            </div>
+                        
+                            <button type="button" id="subNewForm" class="btn btn-primary">Submit</button> <br/><br/>
+                            
+                          </form>
+                        </div>
+            </div>
+        </div>
+
+        <div id="editImageModal" class="modal">
+            <div class="modal-content">
+                <span id="editImageClose" class="close" data-modal="editImageModal">&times;</span>
+                <div class="row align-items-start">
+                    <div class="col-2"></div>
+                    <div class="col-8" style="text-align: left;">
+                        <p id="modal-title">Edit Image</p>
+                        <form style="font-size: 10pt;" id="editImageForm">
+                            <div class="mb-3">
+                                <label for="editMediaID" class="form-label" >Media ID</label>
+                                <p id="editMediaID"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editFileName" class="form-label">File Name</label>
+                                <input type="text" class="form-control" id="editFileName">
+                            </div>
+        
+                            <div class="mb-3">
+                                <label for="editUserID" class="form-label">User ID</label>
+                                <input type="text" class="form-control" id="editUserID">
+                            </div>
+        
+                            <div class="mb-3">
+                                <label for="editUserName" class="form-label">User Name</label>
+                                <input type="text" class="form-control" id="editUserName">
+                            </div>
+        
+                            <div class="mb-3">
+                                <label for="editUpFile" class="form-label">Replace File (optional)</label>
+                                <input type="file" class="form-control" id="editUpFile">
+                            </div>
+                            <input type="hidden" id="editMediaID">
+                            <button type="button" id="saveEditImage" class="btn btn-primary">Save Changes</button> <br/><br/>
+                            
+                            <input type="hidden" id="editImageID">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+       <!-- Edit Driver Modal -->
+        <div id="editDriverModal" class="modal">
+            <div class="modal-content">
+                <span id="editDriverClose" class="close" data-modal="editModal">&times;</span>
+                <div class="col-2"></div>
+                <div class="col-8" style="text-align: left;">
+                    <p id="modal-title">Edit Driver</p>
+                    <form style="font-size: 10pt;" id="editAssetForm">
+                    <!-- Repeat the same structure as the "Add Driver" form -->
+                    <div class="mb-3">
+                        <label for="editDriverRef" class="form-label">Driver Ref</label>
+                        <input type="text" class="form-control" id="editDriverRef">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCode" class="form-label">Code</label>
+                        <input type="text" class="form-control" id="editCode">
+                      </div>
+      
+                      <div class="mb-3">
+                        <label for="editFirstName" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="editFirstName">
+                      </div>
+      
+                      <div class="mb-3">
+                        <label for="editLastName" class="form-label">Surname</label>
+                        <input type="text" class="form-control" id="editLastName">
+                      </div>
+      
+                      <div class="mb-3">
+                        <label for="editNationality" class="form-label">Nationality</label>
+                        <input type="text" class="form-control" id="editNationality">
+                      </div>
+      
+                      <div class="mb-3">
+                        <label for="editDateOfBirth" class="form-label">Date of Birth</label>
+                        <input type="date" class="form-control" id="editDateOfBirth">
+                      </div>
+      
+                      <div class="mb-3">
+                        <label for="editConstructor" class="form-label">Constructor</label>
+                        <input type="text" class="form-control" id="editConstructor">
+                      </div>
+      
+                      <div class="mb-3">
+                        <label for="editNumber" class="form-label">Number</label>
+                        <input type="number" class="form-control" id="editNumber">
+                      </div>
+                      <div class="mb-3">
+                          <label for="editWins" class="form-label">Wins</label>
+                          <input type="number" class="form-control" id="editWins">
+                      </div>
+                      <div class="mb-3">
+                          <label for="editPodiums" class="form-label">Podiums</label>
+                          <input type="number" class="form-control" id="editPodiums">
+                      </div>
+                      <div class="mb-3">
+                          <label for="editPolePositions" class="form-label">Pole Positions </label>
+                          <input type="number" class="form-control" id="editPolePositions">
+                        </div>
+                      <div class="mb-3">
+                          <label for="editRacesParticipated" class="form-label">Race Participated</label>
+                          <input type="number" class="form-control" id="editRacesParticipated">
+                      </div>
+                      <div class="mb-3">
+                          <label for="editChampionships" class="form-label">Champions</label>
+                          <input type="number" class="form-control" id="editChampionships">
+                      </div>
+                    <button type="button" id="saveEditForm" class="btn btn-primary">Save Changes</button> <br/><br/>
+                    </form>
+                </div>
+            </div>
+        </div>
+  
+  
+        <div class="image-grid">
+            <div id="ImageList">
+                
+            </div>
+        </div>
+
+        <div id="AssetList">
+
+
+
+        </div>
+    </body>
+</html>
