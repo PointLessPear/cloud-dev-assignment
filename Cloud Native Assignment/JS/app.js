@@ -31,10 +31,12 @@ $(document).ready(function() {
 
   }); 
 
-  $("#subNewMedia").click(function(){
-    submitNewMedia();
-    
-  }); 
+
+    $('#subNewMedia').click(function() {
+      submitNewMedia();
+    });
+
+  
 
   $("#deleteImage").click(function(){
     deleteImage(id);
@@ -79,6 +81,7 @@ $(document).ready(function() {
       openEditModal();
     }
   });
+
   $('#view-images').click(function() {
     var imageGrid = document.getElementsByClassName('image-grid')[0]; 
     var assetList = document.getElementById('AssetList'); 
@@ -104,49 +107,153 @@ $(document).ready(function() {
   });
   
 });
+document.addEventListener('DOMContentLoaded', () => {
+  const languageLinks = document.querySelectorAll('.nav-dropdown-content a[data-lang]');
 
+  languageLinks.forEach(link => {
+      link.addEventListener('click', function(event) {
+          event.preventDefault();
+          const language = this.getAttribute('data-lang');
+          setLanguagePreference(language);
+      });
+  });
 
-function submitNewMedia(){
-  submitData = new FormData();
+  const savedLanguage = getLanguagePreference();
+});
+
+function setLanguagePreference(language) {
+  localStorage.setItem('preferredLanguage', language);
+}
+
+function getLanguagePreference() {
+  return localStorage.getItem('preferredLanguage') || 'en';
+}
+
+async function translateText(text, targetLanguage) {
+  
+  const subscriptionKey = 'b417765755194676a370ca0cba542d3e'; 
+  const region = 'eastus2'; 
+  const endpoint = `https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=${targetLanguage}`;
+
+  try {
+      const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+              'Ocp-Apim-Subscription-Key': subscriptionKey,
+              'Content-Type': 'application/json',
+              'Ocp-Apim-Subscription-Region': region,
+          },
+          body: JSON.stringify([{ Text: text }])
+      });
+
+      if (!response.ok) {
+          throw new Error(`API request failed with status ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data[0].translations[0].text;
+  } catch (error) {
+      console.error('Error translating text:', error);
+      return text; // Return the original text if translation fails
+  }
+}
+
+function moderateContent(imageUrl) {
+  var apiKey = "d93204722593474797ff1a18a4a61e10"; // Store this securely
+  var endpoint = "https://f1contentmod.cognitiveservices.azure.com/contentmoderator/moderate/v1.0/ProcessImage/Evaluate";
+
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", endpoint, true);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.setRequestHeader("Ocp-Apim-Subscription-Key", apiKey);
+
+  xhr.onreadystatechange = function () {
+    if (this.readyState === XMLHttpRequest.DONE) {
+      if (this.status === 200) {
+        var response = JSON.parse(this.responseText);
+        console.log(response); // Handle the response
+        // Check if content is acceptable
+        if (isContentAcceptable(response)) {
+          console.log('Content is acceptable.');
+          // Here you can perform actions if the content is deemed acceptable
+        } else {
+          console.log('Content is not acceptable.');
+       
+        }
+      } else {
+      }
+    }
+  };
+
+  var data = JSON.stringify({
+    "DataRepresentation": "URL",
+    "Value": imageUrl
+  });
+
+  xhr.send(data);
+}
+
+function submitNewMedia() {
+  var submitData = new FormData();
   submitData.append('FileName', $('#FileName').val());
   submitData.append('UserID', $('#userID').val());
   submitData.append('UserName', $('#userName').val());
   submitData.append('File', $("#UpFile")[0].files[0]);
-$.ajax({
-    url: IUPS,
+
+  $.ajax({
+    url: IUPS, 
     data: submitData,
     cache: false,
     enctype: 'multipart/form-data',
     contentType: false,
     processData: false,
     type: 'POST',
-    success: function(data){
-      clearForm();
+    success: function(data) {
+      console.log(data);
+      var imageUrl = data.imageUrl; 
+      moderateContent(imageUrl);
       getImages();
+    },
+    error: function() {
+      alert('There was an error uploading the file!');
     }
   });
 }
 
-function getImages(data) {
+  
 
+async function getImages() {
+  // Define the labels you want to translate
+  const targetLanguage = getLanguagePreference();
+  const labels = {
+    file: 'File',
+    uploadedBy: 'Uploaded by',
+    // Add any other labels you want to translate
+  };
+
+  // Translate the labels
+  for (let key in labels) {
+    labels[key] = await translateText(labels[key], targetLanguage);
+  }
+  console.log(labels);
+  // Fetch and process the image data
   $.getJSON(RAI, function(data) {
     var items = [];
-   $.each(data, function(key, val) {
-    var imageUrl = BLOB_ACCOUNT + val["filePath"];
+    $.each(data, function(key, val) {
+      var imageUrl = BLOB_ACCOUNT + val["filePath"];
 
-    var itemHtml = "<div class='image-item'>"; 
-    itemHtml += "<img src='" + imageUrl + "' width='400'/>";
-    itemHtml += "<div class='media-info'><p> File: " + val["fileName"] + "</p>" ;
-    itemHtml += "<p> Uploaded by: " + val["userName"] + " (user id: " + val["userID"] + ")</p></div>";
-    itemHtml += "<div class='button-container'>"; // Start button container
-    itemHtml += "<button class='btn-delete' onclick='deleteImage(\"" + val['id'] + "\")'>Delete</button>";
-    itemHtml += "<button class='btn-mediaEdit' onclick='editMedia(\"" + val['id'] + "\")'>edit</button>";
-    itemHtml += "</div>"; // End button container
-    itemHtml += "</div>";
-    
+      var itemHtml = "<div class='image-item'>";
+      itemHtml += "<img src='" + imageUrl + "' width='400'/>";
+      itemHtml += "<div class='media-info'><p>" + labels.file + ": " + val["fileName"] + "</p>";
+      itemHtml += "<p>" + labels.uploadedBy + ": " + val["userName"] + " (user id: " + val["userID"] + ")</p></div>";
+      itemHtml += "<div class='button-container'>";
+      itemHtml += "<button class='btn-delete' onclick='deleteImage(\"" + val['id'] + "\")'>Delete</button>";
+      itemHtml += "<button class='btn-mediaEdit' onclick='editMedia(\"" + val['id'] + "\")'>Edit</button>";
+      itemHtml += "</div>";
+      itemHtml += "</div>";
 
-    items.push(itemHtml); 
-});
+      items.push(itemHtml);
+    });
 
 $('#ImageList').empty();
 $("<div/>", {
@@ -284,42 +391,111 @@ function submitNewAsset(){
   }).done(function(response) {
     getAssetList();
   });
-}
+}  
 
-function getAssetList() {
+async function getAssetList() {
+  const targetLanguage = getLanguagePreference(); 
+  console.log(targetLanguage);
+
+  const labels = {
+    firstName: 'First Name',
+    lastName: 'Last Name',
+    nationality: "Nationality",
+    dateOfBirth: "Date Of Birth",
+    constructor: "Constructor",
+    number: "Number",
+    wins: "Wins",
+    podiums: "Podiums",
+    polePositions: "Pole Positions",
+    racesParticipated: "Races Participated",
+    championships: "Championships"
+  }
+
+  for (let key in labels) {
+    labels[key] = await translateText(labels[key], targetLanguage);
+  }
   $.getJSON(RAAURI, function(data) {
     var items = [];
     
-    $.each(data, function(key, val) {
-      var cardHtml = `
-        <div class="card">
-          <div class="card-content">
-            <h5 class="card-header">${val["driverRef"]} - ${val['code']}</h5>
-            <div class="card-body">
-              <p>First Name: ${val['firstName']}</p>
-              <p>Last Name: ${val['lastName']}</p>
-              <p>Nationality: ${val['nationality']}</p>
-              <p>Date Of Birth: ${val['dateOfBirth']}</p>
-              <p>Constructor: ${val['constructor']}</p>
-              <p>Number: ${val['number']}</p>
-              <p>Wins: ${val['wins']}</p>
-              <p>Podiums: ${val['podiums']}</p>
-              <p>Pole Positions: ${val['polePositions']}</p>
-              <p>Races Participated: ${val['racesParticipated']}</p>
-              <p>Championships: ${val['championships']}</p>
-              <button type="button" class="btn-delete" onclick="deleteAsset(${val['driverID']})">Delete</button>
-              <button class="btn-edit" onclick="editAsset(${val['driverID']})">Edit</button>
+      $.each(data, function(key, val) {
+        var cardHtml = `
+          <div class="card">
+            <div class="card-content">
+              <h5 class="card-header">${val["driverRef"]} - ${val['code']}</h5>
+              <div class="card-body">
+                <p>${labels.firstName}: ${val['firstName']}</p>
+                <p>${labels.lastName}: ${val['lastName']}</p>
+                <p>${labels.nationality}: ${val['nationality']}</p>
+                <p>${labels.dateOfBirth}: ${val['dateOfBirth']}</p>
+                <p>${labels.constructor}: ${val['constructor']}</p>
+                <p>${labels.number}: ${val['number']}</p>
+                <p>${labels.wins}: ${val['wins']}</p>
+                <p>${labels.podiums}: ${val['podiums']}</p>
+                <p>${labels.polePositions}: ${val['polePositions']}</p>
+                <p>${labels.racesParticipated}: ${val['racesParticipated']}</p>
+                <p>${labels.championships}: ${val['championships']}</p>
+                <button type="button" class="btn-delete" onclick="deleteAsset(${val['driverID']})">Delete</button>
+                <button class="btn-edit" onclick="editAsset(${val['driverID']})">Edit</button>
+              </div>
             </div>
           </div>
-        </div>
-      `;
-      items.push(cardHtml);
-    });
-
+        `;
+        items.push(cardHtml);
+      });
+    
     $('#AssetList').empty().html(items.join(''));
   });
 }
+async function translateFormLabels(targetLanguage) {
+  const labels = [
+      { id: 'editDriverRef', text: 'Driver Ref' },
+      { id: 'editCode', text: 'Code' },
+      { id: 'editFirstName', text: 'First Name' },
+      { id: 'editLastName', text: 'Surname' },
+      { id: 'editNationality', text: 'Nationality' },
+      { id: 'editDateOfBirth', text: 'Date Of Birth' },
+      { id: 'editConstructor', text: 'Constructor' },
+      { id: 'editNumber', text: 'Number' },
+      { id: 'editWins', text: 'Wins' },
+      { id: 'editPodiums', text: 'Podiums' },
+      { id: 'editPolePositions', text: 'Pole Positions' },
+      { id: 'editRacesParticipated', text: 'Race Participated' },
+      { id: 'editChampionships', text: 'Championships' },
+      { id: 'editMediaID', text: 'Media ID' },
+      { id: 'editFileName', text: 'File Name' },
+      { id: 'editUserID', text: 'User ID' },
+      { id: 'editUserName', text: 'Username' },
+      { id: 'editUpFile', text: 'Replace File (optional)' },
+      { id: 'driverRef', text: 'Driver Ref' },
+      { id: 'code', text: 'Code' },
+      { id: 'firstName', text: 'First Name' },
+      { id: 'lastName', text: 'Surname' },
+      { id: 'nationality', text: 'Nationality' },
+      { id: 'dateOfBirth', text: 'Date of Birth' },
+      { id: 'constructor', text: 'Constructor' },
+      { id: 'number', text: 'Number' },
+      { id: 'wins', text: 'Wins' },
+      { id: 'podiums', text: 'Podiums' },
+      { id: 'polePositions', text: 'Pole Positions' },
+      { id: 'racesParticipated', text: 'Races Participated' },
+      { id: 'championships', text: 'Championships' },
+      { id: 'FileName', text: 'File Name' },
+      { id: 'userID', text: 'User ID' },
+      { id: 'userName', text: 'Username' },
+      { id: 'UpFile', text: 'File to upload' }
+  ];
+  
+  for (const label of labels) {
+      const translatedText = await translateText(label.text, targetLanguage);
+      document.querySelector(`label[for="${label.id}"]`).textContent = translatedText;
+  }
+}
 
+// Example usage: Translate labels to Spanish when the document is ready
+document.addEventListener('DOMContentLoaded', () => {
+  targetLanguage = getLanguagePreference();
+  translateFormLabels(targetLanguage); // 'es' is the language code for Spanish
+});
 
 function editAsset(driverID) {
   console.log(123);
@@ -337,7 +513,7 @@ function editAsset(driverID) {
       $('#editWins').val(driverData.wins);
       $('#editPodiums').val(driverData.podiums);
       $('#editPolePositions').val(driverData.polePositions);
-      $('#editRaceParticipated').val(driverData.racesParticipated);
+      $('#editRacesParticipated').val(driverData.racesParticipated);
       $('#editChampionships').val(driverData.championships);
       
       $('#saveEditForm').data('driverID', driverID);
